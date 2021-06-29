@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import auth from "./firebase";
-import react, { useState } from 'react';
+import react, { useState,useEffect } from 'react';
 
 function App() {
   const [email, setEmail] = useState("");
@@ -9,6 +9,7 @@ function App() {
   const [error, setError] = useState("");
   const [loader, setLoader] = useState(false);
   const [user, setUser] = useState(null);
+  const [mainLoader, setMainLoader] = useState(true);
 
 
   const handleSubmit = async () => {
@@ -25,22 +26,48 @@ function App() {
       setError(true);
       setLoader(false);
     }
+    setEmail("");
+    setPassword("");
     
+  }
+
+  const handleLogout = async () => {
+    setLoader(true);
+    await auth.signOut();
+    setUser(null);
+    setLoader(false);
   }
 
   const handleEmailInput = (e) => {
     setEmail(e.target.value)
   }
+
+  
+
+  // this will work after render
+  // use effect is similar to component did amount
+  // jo chiz aane me time lagti hai wo component did mount me dal do
+  useEffect(() => {
+    
+    auth.onAuthStateChanged (user => {
+      setUser(user);
+      setMainLoader(false)
+    })
+  }, [])
   return (
     <>
-      {error == true ? <h1>Failed To login</h1>:
-      loader == true ? <h1>Loading......</h1> :
+      {mainLoader == true ? <h1>Wait For a second</h1>:
+        loader == true ? <h1>Loading......</h1> :
+          
       
-        user != null ? <h1>User LoggedIn {user.uid}</h1> :
+          user != null ? <h1>User LoggedIn {user.uid}
+            <button onClick={handleLogout}>Logout</button>
+          </h1> :
         <>
      
     
-          <h1>FireBase Login</h1>
+              <h1>FireBase Login</h1>
+              
           <input type="email" value={email} onChange={handleEmailInput}></input>
           <input type="password" value={password} onChange={(e) => {
             setPassword(e.target.value)
